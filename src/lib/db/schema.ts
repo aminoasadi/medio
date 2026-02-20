@@ -22,6 +22,8 @@ export const users = pgTable(
     username: varchar("username", { length: 255 }).unique(),
     bio: text("bio"),
     theme_config: jsonb("theme_config").default({ primaryColor: "#000000" }),
+    phone: text("phone").unique(),
+    password: text("password"),
   },
   (table) => [
     index("username_idx").on(table.username),
