@@ -63,3 +63,18 @@ export async function loginAction(prevState: any, formData: FormData) {
         return { error: "Something went wrong." }
     }
 }
+
+export async function unifiedAuthAction(prevState: any, formData: FormData) {
+    const identifier = formData.get("identifier") as string
+    if (!identifier) return { error: "Identifier is required." }
+
+    const existing = await db.select().from(users).where(
+        or(eq(users.email, identifier), eq(users.phone, identifier))
+    ).limit(1)
+
+    if (existing.length > 0) {
+        return await loginAction(prevState, formData)
+    } else {
+        return await registerAction(prevState, formData)
+    }
+}
