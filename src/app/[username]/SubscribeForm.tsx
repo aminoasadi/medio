@@ -33,8 +33,9 @@ export function SubscribeForm({ username, primaryColor }: { username: string, pr
 
             toast({ title: "Subscribed Successfully!" })
             form.reset()
-        } catch (e: any) {
-            toast({ title: "Error", description: e.message, variant: "destructive" })
+        } catch (e: unknown) {
+            const message = e instanceof Error ? e.message : "An error occurred"
+            toast({ title: "Error", description: message, variant: "destructive" })
         }
     }
 

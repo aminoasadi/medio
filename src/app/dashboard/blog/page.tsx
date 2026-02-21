@@ -5,14 +5,15 @@ import { eq, desc } from "drizzle-orm"
 import { createPost, deletePost } from "./actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { Trash2 } from "lucide-react"
 import Link from "next/link"
 
 export default async function BlogPage() {
     const session = await auth()
-    if (!session?.user?.id) return null
+    if (!session?.user?.id || !session.user.name) return null
+    const userName = session.user.name
 
     const userPosts = await db
         .select()
@@ -48,7 +49,7 @@ export default async function BlogPage() {
                         <CardHeader className="flex flex-row items-start justify-between">
                             <div>
                                 <CardTitle className="text-lg">
-                                    <Link href={`/${session.user.name}/blog/${post.slug}`} className="hover:underline">
+                                    <Link href={`/${userName}/blog/${post.slug}`} className="hover:underline">
                                         {post.title}
                                     </Link>
                                 </CardTitle>

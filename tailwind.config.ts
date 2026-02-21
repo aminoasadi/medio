@@ -10,7 +10,7 @@ const config: Config = {
 	theme: {
 		extend: {
 			fontFamily: {
-				sans: ['"Inter"', 'sans-serif'],
+				sans: ['"iranyekan"', '"Yekan"', 'sans-serif'],
 			},
 			colors: {
 				background: 'hsl(var(--background))',

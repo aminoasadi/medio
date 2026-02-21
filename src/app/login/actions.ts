@@ -14,7 +14,7 @@ const registerSchema = z.object({
     password: z.string().min(6, "Password must be at least 6 characters."),
 })
 
-export async function registerAction(prevState: any, formData: FormData) {
+export async function registerAction(prevState: unknown, formData: FormData) {
     const identifier = formData.get("identifier") as string
     const password = formData.get("password") as string
 
@@ -47,7 +47,7 @@ export async function registerAction(prevState: any, formData: FormData) {
     }
 }
 
-export async function loginAction(prevState: any, formData: FormData) {
+export async function loginAction(prevState: unknown, formData: FormData) {
     try {
         await signIn("credentials", {
             identifier: formData.get("identifier"),
@@ -64,17 +64,23 @@ export async function loginAction(prevState: any, formData: FormData) {
     }
 }
 
-export async function unifiedAuthAction(prevState: any, formData: FormData) {
+export async function unifiedAuthAction(prevState: unknown, formData: FormData) {
     const identifier = formData.get("identifier") as string
     if (!identifier) return { error: "Identifier is required." }
 
-    const existing = await db.select().from(users).where(
-        or(eq(users.email, identifier), eq(users.phone, identifier))
-    ).limit(1)
+    try {
+        const existing = await db.select().from(users).where(
+            or(eq(users.email, identifier), eq(users.phone, identifier))
+        ).limit(1)
 
-    if (existing.length > 0) {
-        return await loginAction(prevState, formData)
-    } else {
-        return await registerAction(prevState, formData)
+        if (existing.length > 0) {
+            return await loginAction(prevState, formData)
+        } else {
+            return await registerAction(prevState, formData)
+        }
+    } catch (error: unknown) {
+        if (isRedirectError(error)) throw error;
+        console.error("DB Error:", error)
+        return { error: "Database error occurred." }
     }
 }

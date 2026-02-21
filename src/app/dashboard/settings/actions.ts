@@ -48,8 +48,8 @@ export async function updateSettings(formData: FormData) {
 
         revalidatePath("/dashboard/settings")
         // Revalidate public profile if possible, it's dynamic
-    } catch (err: any) {
-        if (err.code === '23505') { // Postgres unique constraint error
+    } catch (err: unknown) {
+        if (err && typeof err === 'object' && 'code' in err && err.code === '23505') { // Postgres unique constraint error
             throw new Error("Username already taken")
         }
         throw new Error("Failed to update settings")

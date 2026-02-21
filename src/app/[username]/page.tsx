@@ -1,5 +1,5 @@
 import { db } from "@/lib/db"
-import { users, links, posts, social_feeds } from "@/lib/db/schema"
+import { users, links, posts } from "@/lib/db/schema"
 import { eq, desc, and } from "drizzle-orm"
 import { notFound } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -28,7 +28,6 @@ export default async function PublicProfile({ params }: PageProps) {
     const primaryColor = theme?.primaryColor || "#000000"
 
     const userLinks = await db.select().from(links).where(and(eq(links.user_id, userId), eq(links.active, true))).orderBy(links.order_index)
-    const userSocials = await db.select().from(social_feeds).where(and(eq(social_feeds.user_id, userId), eq(social_feeds.active, true)))
     const recentPosts = await db.select().from(posts).where(and(eq(posts.user_id, userId), eq(posts.published, true))).orderBy(desc(posts.created_at)).limit(3)
 
     return (
