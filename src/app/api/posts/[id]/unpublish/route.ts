@@ -1,22 +1,26 @@
+import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { handleApiError, formatSuccess, formatError } from "@/lib/errors";
-import { db } from "@/lib/db";
-import { posts } from "@/lib/db/schema";
-import { eq, and } from "drizzle-orm";
+import { createSupabaseAdmin } from "@/lib/supabase/admin";
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
     try {
         const session = await auth();
-        if (!session?.user?.id) throw new Error("401");
+        if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-        const [updated] = await db.update(posts)
-            .set({ published: false })
-            .where(and(eq(posts.id, params.id), eq(posts.user_id, session.user.id)))
-            .returning();
+        const supabase = createSupabaseAdmin();
+        const { error } = await supabase
+            .from("posts")
+            .update({
+                status: "draft",
+                updated_at: new Date().toISOString()
+            })
+            .eq("id", params.id)
+            .eq("user_id", session.user.id);
 
-        if (!updated) return formatError("NOT_FOUND", "Post not found", 404);
-        return formatSuccess(updated);
-    } catch (error) {
-        return handleApiError(error);
+        if (error) return NextResponse.json({ error: "Failed to unpublish" }, { status: 400 });
+        return NextResponse.json({ success: true, published: false });
+    } catch (e) {
+        console.error("Post Unpublish Error", e);
+        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }

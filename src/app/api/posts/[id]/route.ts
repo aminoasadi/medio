@@ -1,43 +1,68 @@
+import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { handleApiError, formatSuccess, formatError } from "@/lib/errors";
-import { db } from "@/lib/db";
-import { posts } from "@/lib/db/schema";
-import { eq, and } from "drizzle-orm";
-import { z } from "zod";
+import { createSupabaseAdmin } from "@/lib/supabase/admin";
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params }: { params: { id: string } }) {
     try {
         const session = await auth();
-        if (!session?.user?.id) throw new Error("401");
+        if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-        const json = await req.json();
-        const updateSchema = z.object({ title: z.string(), slug: z.string(), content: z.string() });
-        const parsed = updateSchema.parse(json);
+        const supabase = createSupabaseAdmin();
+        const { data: post, error } = await supabase
+            .from("posts")
+            .select("*")
+            .eq("id", params.id)
+            .eq("user_id", session.user.id)
+            .single();
 
-        const [updated] = await db.update(posts)
-            .set(parsed)
-            .where(and(eq(posts.id, params.id), eq(posts.user_id, session.user.id)))
-            .returning();
+        if (error || !post) return NextResponse.json({ error: "Not Found" }, { status: 404 });
+        return NextResponse.json({ data: post });
+    } catch (e) {
+        console.error("Post GET Error", e);
+        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    }
+}
 
-        if (!updated) return formatError("NOT_FOUND", "Post not found", 404);
-        return formatSuccess(updated);
-    } catch (error) {
-        return handleApiError(error);
+export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+        const updates = await req.json();
+
+        const supabase = createSupabaseAdmin();
+        const { data: updatedPost, error } = await supabase
+            .from("posts")
+            .update({ ...updates, updated_at: new Date().toISOString() })
+            .eq("id", params.id)
+            .eq("user_id", session.user.id)
+            .select()
+            .single();
+
+        if (error) return NextResponse.json({ error: "Failed to update" }, { status: 400 });
+        return NextResponse.json({ data: updatedPost });
+    } catch (e) {
+        console.error("Post PATCH Error", e);
+        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
 
 export async function DELETE(req: Request, { params }: { params: { id: string } }) {
     try {
         const session = await auth();
-        if (!session?.user?.id) throw new Error("401");
+        if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-        const [deleted] = await db.delete(posts)
-            .where(and(eq(posts.id, params.id), eq(posts.user_id, session.user.id)))
-            .returning();
+        const supabase = createSupabaseAdmin();
+        const { error } = await supabase
+            .from("posts")
+            .delete()
+            .eq("id", params.id)
+            .eq("user_id", session.user.id);
 
-        if (!deleted) return formatError("NOT_FOUND", "Post not found", 404);
-        return formatSuccess({ success: true, id: deleted.id });
-    } catch (error) {
-        return handleApiError(error);
+        if (error) return NextResponse.json({ error: "Failed to delete" }, { status: 400 });
+        return NextResponse.json({ success: true });
+    } catch (e) {
+        console.error("Post DELETE Error", e);
+        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }

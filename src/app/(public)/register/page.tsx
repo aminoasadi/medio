@@ -8,9 +8,9 @@ export default async function RegisterPage() {
     if (session?.user) redirect("/dashboard/builder");
 
     return (
-        <div className="flex min-h-screen flex-col items-center justify-center p-4 bg-zinc-50 dark:bg-[#0a0a0a] relative selection:bg-indigo-500/30">
+        <div className="flex min-h-screen flex-col items-center justify-center p-4 bg-muted/20 relative">
             <div className="absolute top-8 left-8 md:top-12 md:left-12">
-                <Link href="/" className="font-black text-2xl tracking-tighter text-zinc-900 dark:text-white hover:opacity-80 transition-opacity">
+                <Link href="/" className="font-black text-2xl tracking-tighter text-foreground hover:opacity-80 transition-opacity">
                     Medio.
                 </Link>
             </div>

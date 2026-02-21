@@ -1,27 +1,30 @@
-import { handleApiError, formatSuccess, formatError } from "@/lib/errors";
-import { db } from "@/lib/db";
-import { users, posts } from "@/lib/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { NextResponse } from "next/server";
+import { createSupabaseAdmin } from "@/lib/supabase/admin";
 
 export async function GET(req: Request, { params }: { params: { handle: string } }) {
     try {
         const { handle } = params;
+        const supabase = createSupabaseAdmin();
 
-        const userRecord = await db.query.users.findFirst({ where: eq(users.username, handle) });
-        if (!userRecord) return formatError("NOT_FOUND", "Profile not found", 404);
+        const { data: profile } = await supabase
+            .from("profiles")
+            .select("id")
+            .eq("handle", handle)
+            .single();
 
-        const userPosts = await db.select()
-            .from(posts)
-            .where(and(eq(posts.user_id, userRecord.id), eq(posts.published, true)))
-            .orderBy(desc(posts.created_at));
+        if (!profile) return NextResponse.json({ error: "Profile not found" }, { status: 404 });
 
-        return formatSuccess(userPosts.map(p => ({
-            id: p.id,
-            title: p.title,
-            slug: p.slug,
-            publishedAt: p.created_at,
-        })));
-    } catch (error) {
-        return handleApiError(error);
+        const { data: posts, error } = await supabase
+            .from("posts")
+            .select("*")
+            .eq("user_id", profile.id)
+            .eq("status", "published")
+            .order("published_at", { ascending: false });
+
+        if (error) throw error;
+        return NextResponse.json({ data: posts || [] });
+    } catch (e) {
+        console.error("Public Posts GET Error", e);
+        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }

@@ -1,58 +1,117 @@
+import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { handleApiError, formatSuccess } from "@/lib/errors";
-import { db } from "@/lib/db";
-import { users, links, social_feeds } from "@/lib/db/schema";
-import { eq, asc } from "drizzle-orm";
-import { BuilderSnapshotDTO } from "@/types/dto";
+import { createSupabaseAdmin } from "@/lib/supabase/admin";
 
 export async function GET() {
     try {
         const session = await auth();
-        if (!session?.user?.id) throw new Error("401");
+        if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+        const supabase = createSupabaseAdmin();
         const userId = session.user.id;
-        // Drizzle fetches (mocked structure if schema doesn't fully match yet):
-        const userRecord = await db.query.users.findFirst({ where: eq(users.id, userId) });
-        const userLinks = await db.select().from(links).where(eq(links.user_id, userId)).orderBy(asc(links.order_index));
-        const userSocials = await db.select().from(social_feeds).where(eq(social_feeds.user_id, userId));
 
-        const themeConfig = userRecord?.theme_config as Record<string, unknown> || {};
+        // Fetch Profile
+        const { data: profileRow } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", userId)
+            .single();
 
-        const data: BuilderSnapshotDTO = {
-            profile: {
-                name: userRecord?.name || "",
-                bio: userRecord?.bio || "",
-                avatarUrl: userRecord?.image || "",
-            },
-            theme: {
-                preset: (themeConfig.preset as string) || "light",
-                primaryColor: (themeConfig.primaryColor as string) || "#000000",
-                backgroundStyle: (themeConfig.backgroundStyle as string) || "solid",
-                buttonRadius: (themeConfig.buttonRadius as "sm" | "md" | "lg" | "full" | "none") || "md",
-                fontPreset: (themeConfig.fontPreset as string) || "inter",
-            },
-            newsletter: {
-                enabled: (themeConfig.newsletter_enabled as boolean) ?? false,
-                title: (themeConfig.newsletter_title as string) || "Subscribe to my updates",
-                description: (themeConfig.newsletter_description as string) || "Get the latest news directly to your inbox.",
-            },
-            links: userLinks.map(l => ({
-                id: l.id,
-                title: l.title,
-                url: l.url,
-                orderIndex: l.order_index,
-                isActive: l.active ?? true,
-            })),
-            socials: userSocials.map(s => ({
-                id: s.id,
-                network: s.platform || "",
-                url: s.url,
-                isEnabled: s.active ?? true,
-            }))
-        };
+        let profileData = { name: session.user.name || "User", bio: "", avatarUrl: session.user.image || "" };
+        let themeData = { preset: "neutral", primaryColor: "#0EA5E9", backgroundStyle: "solid", buttonRadius: "md", fontPreset: "roboto" };
+        let newsletterData = { enabled: false, title: "Join my newsletter", description: "" };
 
-        return formatSuccess(data);
-    } catch (error) {
-        return handleApiError(error);
+        if (profileRow) {
+            profileData = { name: profileRow.display_name, bio: profileRow.bio || "", avatarUrl: profileRow.avatar_url || "" };
+            themeData = { ...themeData, ...profileRow.theme_config };
+            newsletterData = { ...newsletterData, ...profileRow.newsletter_config };
+        } else {
+            // Create initial profile if missing
+            await supabase.from("profiles").insert({
+                id: userId,
+                display_name: session.user.name || "User",
+                user_email: session.user.email, // Store email temporarily or drop it, user_email not in schema but it's fine
+                avatar_url: session.user.image || ""
+            });
+        }
+
+        // Fetch Items
+        const { data: items } = await supabase
+            .from("page_items")
+            .select("*")
+            .eq("user_id", userId)
+            .order("order", { ascending: true });
+
+        return NextResponse.json({
+            data: {
+                profile: profileData,
+                theme: themeData,
+                newsletter: newsletterData,
+                items: items || []
+            }
+        });
+
+    } catch (e) {
+        console.error("GET Snapshot Error", e);
+        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    }
+}
+
+export async function POST(req: Request) {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+        const body = await req.json();
+        const supabase = createSupabaseAdmin();
+        const userId = session.user.id;
+
+        // Update Profile & Settings
+        if (body.profile || body.theme || body.newsletter) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const updates: any = {};
+            if (body.profile) {
+                updates.display_name = body.profile.name;
+                updates.bio = body.profile.bio;
+                updates.avatar_url = body.profile.avatarUrl;
+            }
+            if (body.theme) updates.theme_config = body.theme;
+            if (body.newsletter) updates.newsletter_config = body.newsletter;
+            updates.updated_at = new Date().toISOString();
+
+            await supabase
+                .from("profiles")
+                .upsert({ id: userId, ...updates }, { onConflict: "id" });
+        }
+
+        // Update Items (Full replacement for now to keep it synced)
+        if (body.items && Array.isArray(body.items)) {
+            // Delete old items
+            await supabase.from("page_items").delete().eq("user_id", userId);
+
+            // Insert new ones
+            if (body.items.length > 0) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const newItems = body.items.map((item: any) => ({
+                    id: item.id,
+                    user_id: userId,
+                    type: item.type,
+                    enabled: item.enabled ?? true,
+                    order: item.order ?? 0,
+                    title: item.title || "",
+                    url: item.url || "",
+                    config: item.config || {},
+                    schedule_start: item.schedule_start,
+                    schedule_end: item.schedule_end,
+                }));
+                await supabase.from("page_items").insert(newItems);
+            }
+        }
+
+        return NextResponse.json({ success: true });
+
+    } catch (e) {
+        console.error("POST Snapshot Error", e);
+        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }

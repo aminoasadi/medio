@@ -27,25 +27,22 @@ export interface NewsletterDTO {
     description: string;
 }
 
-export interface LinkDTO {
+export interface PageItemDTO {
     id: string;
-    title: string;
-    url: string;
-    orderIndex: number;
-    isActive: boolean;
-}
-
-export interface SocialDTO {
-    id: string;
-    network: string;
-    url: string;
-    isEnabled: boolean;
+    type: "link" | "header" | "divider" | "social_row" | "embed" | "email_capture";
+    enabled: boolean;
+    order: number;
+    title?: string;
+    url?: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    config: any; // Dynamic based on type
+    schedule_start?: string | null;
+    schedule_end?: string | null;
 }
 
 export interface BuilderSnapshotDTO {
     profile: ProfileDTO;
     theme: ThemeDTO;
     newsletter: NewsletterDTO;
-    links: LinkDTO[];
-    socials: SocialDTO[];
+    items: PageItemDTO[];
 }
