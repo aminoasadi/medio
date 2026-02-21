@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import "@fontsource/funnel-display";
+import "@fontsource/inter";
 import "./globals.css";
 
 export const metadata: Metadata = {

@@ -10,7 +10,7 @@ const config: Config = {
 	theme: {
 		extend: {
 			fontFamily: {
-				sans: ['"Funnel Display"', 'sans-serif'],
+				sans: ['"Inter"', 'sans-serif'],
 			},
 			colors: {
 				background: 'hsl(var(--background))',
