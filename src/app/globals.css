@@ -4,15 +4,15 @@
 
 @layer base {
   body {
-    background-color: #fafafa;
-    /* light gray bg similar to Otanes */
-    color: #09090b;
+    background-color: #0a0a0a;
+    color: #ffffff;
     font-feature-settings: "rlig" 1, "calt" 1;
+    overflow-x: hidden;
   }
 }
 
 @layer utilities {
   .glass-card {
-    @apply bg-white/70 backdrop-blur-xl border border-white/20 shadow-[0_8px_30px_rgb(0, 0, 0, 0.04)];
+    @apply bg-zinc-900/70 backdrop-blur-xl border border-white/10;
   }
 }

@@ -10,39 +10,39 @@ const config: Config = {
 	theme: {
 		extend: {
 			colors: {
-				background: 'white',
-				foreground: '#09090b', // zinc-950
+				background: '#0a0a0a',
+				foreground: '#ffffff',
 				card: {
-					DEFAULT: 'white',
-					foreground: '#09090b'
+					DEFAULT: '#121212',
+					foreground: '#ffffff'
 				},
 				popover: {
-					DEFAULT: 'white',
-					foreground: '#09090b'
+					DEFAULT: '#121212',
+					foreground: '#ffffff'
 				},
 				primary: {
-					DEFAULT: '#09090b',
-					foreground: 'white'
+					DEFAULT: '#ffffff',
+					foreground: '#000000'
 				},
 				secondary: {
-					DEFAULT: '#f4f4f5', // zinc-100
-					foreground: '#18181b' // zinc-900
+					DEFAULT: '#1e1e1e',
+					foreground: '#ffffff'
 				},
 				muted: {
-					DEFAULT: '#f4f4f5',
-					foreground: '#71717a' // zinc-500
+					DEFAULT: '#1e1e1e',
+					foreground: '#a1a1aa'
 				},
 				accent: {
-					DEFAULT: '#f4f4f5',
-					foreground: '#09090b'
+					DEFAULT: '#1e1e1e',
+					foreground: '#ffffff'
 				},
 				destructive: {
 					DEFAULT: '#ef4444',
 					foreground: '#fafafa'
 				},
-				border: '#e4e4e7', // zinc-200
-				input: '#e4e4e7', // zinc-200
-				ring: '#09090b',
+				border: '#27272a',
+				input: '#27272a',
+				ring: '#ffffff',
 			},
 			borderRadius: {
 				lg: '1rem',
@@ -50,9 +50,14 @@ const config: Config = {
 				sm: '0.5rem'
 			},
 			animation: {
+				'marquee': 'marquee 25s linear infinite',
 				'fade-in-up': 'fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
 			},
 			keyframes: {
+				marquee: {
+					'0%': { transform: 'translateX(0%)' },
+					'100%': { transform: 'translateX(-100%)' },
+				},
 				fadeInUp: {
 					'0%': { opacity: '0', transform: 'translateY(15px)' },
 					'100%': { opacity: '1', transform: 'translateY(0)' },
