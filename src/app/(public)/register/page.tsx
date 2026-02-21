@@ -1,9 +1,9 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { LoginForm } from "@/components/auth/LoginForm";
+import { RegisterForm } from "@/components/auth/RegisterForm";
 import Link from "next/link";
 
-export default async function LoginPage() {
+export default async function RegisterPage() {
     const session = await auth();
     if (session?.user) redirect("/dashboard/builder");
 
@@ -15,7 +15,7 @@ export default async function LoginPage() {
                 </Link>
             </div>
 
-            <LoginForm />
+            <RegisterForm />
         </div>
     );
 }
