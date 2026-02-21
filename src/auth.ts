@@ -2,10 +2,8 @@ import NextAuth from "next-auth"
 import { DrizzleAdapter } from "@auth/drizzle-adapter"
 import { db } from "@/lib/db"
 import { accounts, sessions, users, verificationTokens } from "@/lib/db/schema"
-import Google from "next-auth/providers/google"
 import Credentials from "next-auth/providers/credentials"
-import bcrypt from "bcryptjs"
-import { eq, or } from "drizzle-orm"
+import { eq } from "drizzle-orm"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
     adapter: DrizzleAdapter(db, {
@@ -14,30 +12,28 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         sessionsTable: sessions,
         verificationTokensTable: verificationTokens,
     }),
+    trustHost: true,
     session: { strategy: "jwt" },
     providers: [
-        Google({
-            clientId: process.env.GOOGLE_CLIENT_ID,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        }),
         Credentials({
             credentials: {
-                identifier: { label: "Email or Phone", type: "text" },
-                password: { label: "Password", type: "password" },
+                email: { label: "Email", type: "email" },
             },
             async authorize(credentials) {
-                if (!credentials?.identifier || !credentials?.password) return null;
+                if (!credentials?.email) return null;
 
-                const identifier = credentials.identifier as string;
-                const [user] = await db.select().from(users).where(
-                    or(eq(users.email, identifier), eq(users.phone, identifier))
-                ).limit(1);
+                const email = credentials.email as string;
+                let [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
 
-                if (!user || !user.password) return null;
+                if (!user) {
+                    // Auto-register for staging environment
+                    const [newUser] = await db.insert(users).values({
+                        email,
+                        name: email.split("@")[0],
+                    }).returning();
+                    user = newUser;
+                }
 
-                const isValid = await bcrypt.compare(credentials.password as string, user.password);
-
-                if (!isValid) return null;
                 return user;
             },
         }),

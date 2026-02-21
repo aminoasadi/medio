@@ -19,7 +19,7 @@ export default async function LoginPage() {
                 </div>
                 <form action={async (formData) => {
                     "use server";
-                    await signIn("nodemailer", formData, { redirectTo: "/dashboard/builder" });
+                    await signIn("credentials", formData, { redirectTo: "/dashboard/builder" });
                 }} className="space-y-4">
                     <Input name="email" type="email" placeholder="name@example.com" required className="h-12 border-zinc-700 bg-black text-white rounded-none placeholder:text-zinc-600" />
                     <Button type="submit" className="w-full h-12 bg-white text-black hover:bg-zinc-200 rounded-none uppercase font-bold tracking-widest">Sign in with Email</Button>
