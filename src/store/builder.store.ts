@@ -106,8 +106,8 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
                     apiPut("/api/social", { items: socials })
                 ]);
                 set((state) => ({ ui: { ...state.ui, status: "saved", dirty: false } }));
-            } catch (error: any) {
-                set((state) => ({ ui: { status: "error", error: error.message, dirty: true } }));
+            } catch (error: unknown) {
+                set(() => ({ ui: { status: "error", error: error instanceof Error ? error.message : "Unknown error", dirty: true } }));
             }
         }, 900);
     },

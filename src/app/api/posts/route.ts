@@ -1,13 +1,13 @@
 import { auth } from "@/auth";
-import { handleApiError, formatSuccess, formatError } from "@/lib/errors";
+import { handleApiError, formatSuccess } from "@/lib/errors";
 import { db } from "@/lib/db";
 import { posts } from "@/lib/db/schema";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { z } from "zod";
 
 const newPostSchema = z.object({ title: z.string().min(1), slug: z.string().optional(), content: z.string().optional() });
 
-export async function GET(req: Request) {
+export async function GET() {
     try {
         const session = await auth();
         if (!session?.user?.id) throw new Error("401");

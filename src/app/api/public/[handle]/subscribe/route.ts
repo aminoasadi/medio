@@ -8,7 +8,7 @@ export async function POST(req: Request, { params }: { params: { handle: string 
     try {
         const { handle } = params;
         const json = await req.json();
-        const { email } = SubscribeSchema.parse(json);
+        SubscribeSchema.parse(json);
 
         const userRecord = await db.query.users.findFirst({ where: eq(users.username, handle) });
         if (!userRecord) return formatError("NOT_FOUND", "Profile not found", 404);

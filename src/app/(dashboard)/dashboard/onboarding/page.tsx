@@ -11,7 +11,7 @@ export default async function OnboardingPage() {
         <div className="min-h-screen flex items-center justify-center p-4">
             <div className="w-full max-w-md bg-card border rounded-xl p-8 space-y-6 text-center">
                 <h1 className="text-2xl font-bold tracking-tight">Welcome to Medio!</h1>
-                <p className="text-muted-foreground">Let's set up your custom profile handle so you can start sharing your link.</p>
+                <p className="text-muted-foreground">Let&apos;s set up your custom profile handle so you can start sharing your link.</p>
                 <form className="space-y-4 text-left">
                     <div className="space-y-2">
                         <label className="text-sm font-medium">Claim your username</label>

@@ -13,11 +13,12 @@ export async function PUT(req: Request) {
         const json = await req.json();
         const parsed = NewsletterSchema.parse(json);
 
+        const userRecord = await db.query.users.findFirst({ where: eq(users.id, session.user.id) });
+        const themeConfig = (userRecord?.theme_config as Record<string, unknown>) || {};
+
         await db.update(users)
             .set({
-                newsletter_enabled: parsed.enabled,
-                newsletter_title: parsed.title,
-                newsletter_description: parsed.description,
+                theme_config: { ...themeConfig, newsletter_enabled: parsed.enabled, newsletter_title: parsed.title, newsletter_description: parsed.description }
             })
             .where(eq(users.id, session.user.id));
 

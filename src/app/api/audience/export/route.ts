@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { handleApiError, formatSuccess } from "@/lib/errors";
 
-export async function POST(req: Request) {
+export async function POST() {
     try {
         const session = await auth();
         if (!session?.user?.id) throw new Error("401");

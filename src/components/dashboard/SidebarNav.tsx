@@ -3,7 +3,7 @@ import { LayoutTemplate, Users, FileText, Settings, LogOut } from "lucide-react"
 import { User } from "next-auth";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { signOut } from "@/auth"; // assuming auth exports signOut, if not form action
+
 
 export function SidebarNav({ user }: { user: User }) {
     const navItems = [

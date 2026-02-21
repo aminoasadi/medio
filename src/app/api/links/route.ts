@@ -3,7 +3,7 @@ import { handleApiError, formatSuccess } from "@/lib/errors";
 import { db } from "@/lib/db";
 import { links } from "@/lib/db/schema";
 import { CreateLinkSchema } from "@/lib/validators";
-import { eq, and } from "drizzle-orm";
+
 
 export async function POST(req: Request) {
     try {

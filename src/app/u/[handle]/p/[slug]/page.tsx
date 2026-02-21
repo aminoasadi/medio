@@ -21,7 +21,7 @@ export default async function PublicPostPage({ params }: { params: { handle: str
         <div className="min-h-screen flex w-full justify-center bg-slate-50 dark:bg-slate-950 p-6">
             <article className="w-full max-w-3xl prose dark:prose-invert">
                 <Link href={`/u/${handle}`} className="text-sm font-semibold opacity-70 hover:opacity-100 no-underline mb-8 block font-sans">
-                    &larr; Back to {userRecord.name || handle}'s profile
+                    &larr; Back to {userRecord.name || handle}&apos;s profile
                 </Link>
                 <h1>{post.title}</h1>
                 <p className="text-xs text-muted-foreground font-sans">Published on {post.created_at.toLocaleDateString()}</p>

@@ -119,7 +119,7 @@ export function BuilderTabs() {
                                 <select
                                     className="p-2 border rounded bg-background"
                                     value={theme.buttonRadius}
-                                    onChange={e => setTheme({ buttonRadius: e.target.value as any })}
+                                    onChange={e => setTheme({ buttonRadius: e.target.value as "sm" | "md" | "lg" | "full" | "none" })}
                                 >
                                     <option value="sm">Small Radius</option>
                                     <option value="md">Medium Radius</option>

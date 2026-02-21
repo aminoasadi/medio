@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import { handleApiError, formatSuccess, formatError } from "@/lib/errors";
+import { handleApiError, formatSuccess } from "@/lib/errors";
 import { db } from "@/lib/db";
 import { links } from "@/lib/db/schema";
 import { ReorderSchema } from "@/lib/validators";
@@ -13,6 +13,7 @@ export async function POST(req: Request) {
         const json = await req.json();
         const { orderedIds } = ReorderSchema.parse(json);
 
+        const userId = session.user.id;
         // Naive atomic-ish update in a loop or transaction
         // Drizzle transactions:
         await db.transaction(async (tx) => {
@@ -20,7 +21,7 @@ export async function POST(req: Request) {
                 const id = orderedIds[i];
                 await tx.update(links)
                     .set({ order_index: i })
-                    .where(and(eq(links.id, id), eq(links.user_id, session.user.id)));
+                    .where(and(eq(links.id, id), eq(links.user_id, userId)));
             }
         });
 
